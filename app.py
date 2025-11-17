@@ -19,8 +19,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_strong_secret_key'
 
 db_config = {
-    'user': 'root',
-    'password': 'root',   # replace with your real password
+    'user': 'appuser',
+    'password': 'password123',
     'host': '127.0.0.1',
     'database': 'media_line'
 }

@@ -1,16 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    .userinput{
+        color:black;
+    }
+</style>
 <div class="container">
     <h2>Sign Up</h2>
     <form method="POST">
   <label>Username</label>
-  <input type="text" name="username" required><br>
+  <input type="text" name="username" required class="userinput"><br>
   <label>Name</label>
-  <input type="text" name="name" required><br>
+  <input type="text" name="name" required class="userinput"><br>
   <label>Email</label>
-  <input type="email" name="email" required><br>
+  <input type="email" name="email" required class="userinput"><br>
   <label>Password</label>
-  <input type="password" name="password" required><br>
+  <input type="password" name="password" required class="userinput"><br>
   <button type="submit">Sign Up</button>
 </form>
 

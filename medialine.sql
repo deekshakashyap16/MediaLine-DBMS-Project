@@ -381,7 +381,7 @@ DELIMITER ;
 -- -------------------------------------------------------------------------
 
 CREATE OR REPLACE VIEW `vw_popular_content` AS
-SELECT Name, Type, Num_of_streams
+SELECT Media_ID, Name, Type, Num_of_streams
 FROM content
 ORDER BY Num_of_streams DESC
 LIMIT 10;
