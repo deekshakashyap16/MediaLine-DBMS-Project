@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="text-4xl font-bold mb-6 border-b-2 border-red-600 pb-2">All Series</h1>
+
+{% if series %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {% for s in series %}
+  <a href="{{ url_for('content_details', media_id=s.Media_ID) }}" 
+     class="bg-gray-800 p-5 rounded-lg hover:bg-gray-700 transition shadow">
+    <div class="flex items-start space-x-4">
+      <div class="w-16 h-24 flex-shrink-0 bg-red-600 flex items-center justify-center text-white text-3xl font-black rounded">
+        S
+      </div>
+      <div>
+        <h3 class="text-xl font-bold text-white">{{ s.Name }}</h3>
+        <p class="text-sm text-gray-400 mt-1">Language: {{ s.Language }}</p>
+        <p class="text-xs text-gray-500 mt-1">{{ s.Descr[:100] }}...</p>
+        <p class="text-xs text-gray-400 mt-2">Streams: {{ s.Num_of_streams }}</p>
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-400 text-lg">No series found in the database.</p>
+{% endif %}
+
+{% endblock %}

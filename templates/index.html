@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Medialine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #141414; /* Dark Black Background */
+            color: #E5E5E5; /* Light Grey Text */
+        }
+        .text-medialine {
+            color: #E50914; /* Netflix Red Accent */
+        }
+        .bg-medialine {
+            background-color: #E50914;
+        }
+        .card-bg {
+            background-color: #222222; /* Slightly Lighter Black for Cards */
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card-bg:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-10 bg-[#141414] shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <!-- Logo -->
+            <a href="{{ url_for('home') }}" class="flex items-center space-x-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-medialine" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 6a1 1 0 011-1h4a1 1 0 011 1v8a1 1 0 01-1 1H8a1 1 0 01-1-1V6z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-3xl font-bold text-white tracking-widest">MEDIA<span class="text-medialine">LINE</span></span>
+            </a>
+
+            <!-- User History Dropdown -->
+            <nav class="flex items-center space-x-4">
+                <span class="text-sm font-semibold">User Profiles:</span>
+                <div class="relative inline-block text-left">
+                    <select onchange="window.location.href=this.value" 
+                            class="rounded-lg px-4 py-2 bg-medialine text-white text-sm font-semibold appearance-none cursor-pointer focus:ring-2 focus:ring-white">
+                        <option value="{{ url_for('home') }}" selected disabled>Select User History</option>
+                        {% for user in users %}
+                            <option value="{{ url_for('user_history', user_id=user.User_ID) }}">
+                                {{ user.Name }} (ID: {{ user.User_ID }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Home Section: Popular and All Content -->
+        {% if section == 'home' %}
+            <h1 class="text-4xl font-extrabold mb-8 border-b-2 border-medialine pb-2">Dashboard Overview</h1>
+
+            <!-- Popular Content Section -->
+            <section class="mb-12">
+                <h2 class="text-2xl font-bold mb-4 text-medialine">Most Popular Content (Top 10)</h2>
+                {% if popular_content %}
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                        {% for content in popular_content %}
+                            <a href="{{ url_for('content_details', media_id=content.Media_ID) }}" class="card-bg p-4 rounded-lg shadow-xl block">
+                                <h3 class="font-bold text-lg truncate mb-1 text-white">{{ content.Name }}</h3>
+                                <p class="text-sm text-gray-400">{{ content.Type }}</p>
+                                <p class="text-xs mt-2 bg-gray-700 inline-block px-2 py-0.5 rounded-full text-medialine">
+                                    {{ "{:,.0f}".format(content.Num_of_streams) }} Streams
+                                </p>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-400">No popular content data available.</p>
+                {% endif %}
+            </section>
+
+            <!-- All Content Section -->
+            <section>
+                <h2 class="text-2xl font-bold mb-4 text-medialine">Browse All Medialine Titles</h2>
+                {% if all_content %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for content in all_content %}
+                            <a href="{{ url_for('content_details', media_id=content.Media_ID) }}" class="card-bg p-4 rounded-lg shadow-md flex items-start space-x-4">
+                                <!-- Placeholder Image -->
+                                <div class="w-16 h-24 flex-shrink-0 rounded bg-medialine flex items-center justify-center text-4xl font-black text-white">
+                                    {{ content.Type|first }}
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-xl text-white">{{ content.Name }}</h3>
+                                    <p class="text-sm text-gray-400">Rating: {{ content.Ratings | default('N/A', True) }} | {{ content.Type }} ({{ content.Language }})</p>
+                                    <p class="text-xs mt-2 line-clamp-2">{{ content.Descr }}</p>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-400">No content found in the database.</p>
+                {% endif %}
+            </section>
+        
+        <!-- User History Section -->
+        {% elif section == 'history' %}
+            <h1 class="text-4xl font-extrabold mb-4 border-b-2 border-medialine pb-2">{{ user.Name }}'s Watch History</h1>
+            
+            <div class="mb-8 p-4 rounded-lg bg-[#222222] inline-block shadow-md">
+                <span class="text-lg font-semibold text-medialine">Total Watch Time:</span> 
+                <span class="text-white ml-2">{{ (total_watch_time / 3600)|round(2) }} hours</span>
+                <span class="text-xs text-gray-400 ml-1">(Media ID: {{ user.User_ID }})</span>
+            </div>
+
+            {% if watch_history %}
+                <ul class="space-y-4">
+                    {% for item in watch_history %}
+                        <li class="card-bg p-4 rounded-lg shadow-md flex justify-between items-center">
+                            <div>
+                                <h3 class="font-bold text-xl text-white">{{ item.Name }}</h3>
+                                <p class="text-sm text-gray-400">Watched on: <span class="text-medialine">{{ item.Date_watched.strftime('%B %d, %Y') }}</span></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-semibold">{{ (item.Duration_watched / 60)|round(1) }} min</p>
+                                <p class="text-xs text-gray-400">Duration Watched</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="mt-8 p-6 bg-[#222222] rounded-lg border-l-4 border-medialine">
+                    <p class="text-white text-lg">No watch history found for {{ user.Name }}. Start streaming now!</p>
+                </div>
+            {% endif %}
+
+        <!-- Content Details Section -->
+        {% elif section == 'details' %}
+            <h1 class="text-5xl font-extrabold mb-4 text-medialine">{{ content.Name }}</h1>
+            <div class="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-8">
+                <!-- Left Column: Details -->
+                <div class="md:w-2/3">
+                    <div class="space-y-4 mb-8">
+                        <p class="text-xl text-white">{{ content.Descr }}</p>
+                        <div class="flex flex-wrap items-center space-x-4 text-sm font-semibold">
+                            <span class="px-3 py-1 bg-medialine text-white rounded-full">{{ content.Type }}</span>
+                            <span class="text-gray-400">Release: {{ content.Release_date.strftime('%Y') }}</span>
+                            <span class="text-gray-400">Rating: <span class="text-yellow-400">{{ content.Ratings | default('N/A', True) }}</span> ({{ content.Age_rating }})</span>
+                            <span class="text-gray-400">Streams: {{ "{:,.0f}".format(content.Num_of_streams) }}</span>
+                        </div>
+                        
+                        <!-- Type Specific Details -->
+                        {% if content.Type == 'Movie' %}
+                            <p class="text-base text-gray-300">Total Duration: <span class="font-semibold text-white">{{ (details.Total_duration / 60)|round(1) }} minutes</span></p>
+                        {% elif content.Type == 'Series' %}
+                            <p class="text-base text-gray-300">Seasons: <span class="font-semibold text-white">{{ details.num_of_seasons }}</span> | Episodes: <span class="font-semibold text-white">{{ details.num_of_episodes }}</span></p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Cast & Crew -->
+                    <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-1 text-medialine">Cast & Crew</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {% for member in team %}
+                            <div class="p-3 card-bg rounded-lg">
+                                <p class="font-semibold text-white truncate">{{ member.Member_name }}</p>
+                                <p class="text-xs text-gray-400">{{ member.Role }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Right Column: Metadata -->
+                <div class="md:w-1/3 p-6 card-bg rounded-lg shadow-2xl">
+                    <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-1 text-medialine">Metadata</h2>
+                    <ul class="space-y-3">
+                        <li class="flex justify-between items-center border-b border-gray-800 pb-2">
+                            <span class="text-gray-400">Language:</span>
+                            <span class="font-semibold text-white">{{ content.Language }}</span>
+                        </li>
+                        <li class="flex justify-between items-center border-b border-gray-800 pb-2">
+                            <span class="text-gray-400">Media ID:</span>
+                            <span class="font-semibold text-white">{{ content.Media_ID }}</span>
+                        </li>
+                        <li>
+                            <span class="text-gray-400 block mb-2">Genres:</span>
+                            <div class="flex flex-wrap gap-2">
+                                {% for genre in genres %}
+                                    <span class="text-xs font-medium text-white bg-gray-600 px-3 py-1 rounded-full">{{ genre.Genre_name }}</span>
+                                {% endfor %}
+                            </div>
+                        </li>
+                        <li class="pt-4">
+                            <button class="w-full py-3 bg-medialine text-white rounded-lg font-bold hover:opacity-90 transition-opacity">
+                                Stream Now
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+
+    </main>
+    
+    <!-- Footer -->
+    <footer class="mt-12 py-6 text-center text-gray-500 border-t border-gray-800">
+        &copy; 2025 Medialine | Powered by Flask & MySQL.
+    </footer>
+
+</body>
+</html>

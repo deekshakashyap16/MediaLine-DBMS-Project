@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-3xl font-bold text-red-600 mb-4">{{ user.Name }}'s Profile</h1>
+<p>Email: {{ user.Email }}</p>
+<p>Total Watch Time: {{ total_time }} seconds</p>
+
+<h2 class="text-2xl font-bold mt-6 mb-3">Watch History</h2>
+{% if history %}
+<table border="1" class="w-full text-left">
+  <tr><th>Title</th><th>Date</th><th>Duration</th></tr>
+  {% for h in history %}
+  <tr>
+    <td>{{ h.Name }}</td>
+    <td>{{ h.Date_watched }}</td>
+    <td>{{ h.Duration_watched }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No watch history yet.</p>
+{% endif %}
+
+<h2 class="text-2xl font-bold mt-6 mb-3">Liked Content</h2>
+{% if likes %}
+<ul>
+  {% for l in likes %}
+  <li>{{ l.Content_Name }} ({{ l.Type }})</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No liked content yet.</p>
+{% endif %}
+{% endblock %}
