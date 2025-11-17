@@ -145,14 +145,18 @@ def content_details(media_id):
         team=team
     )
 
-
 def call_procedure(proc_name, args=()):
-    """Execute a stored procedure using its own short-lived pooled connection."""
     try:
         conn = cnxpool.get_connection()
         cur = conn.cursor(dictionary=True)
+
+        # Execute the procedure
         cur.callproc(proc_name, args)
 
+        # Necessary for INSERT/UPDATE in stored procedures
+        conn.commit()
+
+        # Capture result sets
         results = []
         for result in cur.stored_results():
             results = result.fetchall()
@@ -164,6 +168,7 @@ def call_procedure(proc_name, args=()):
     except mysql.connector.Error as err:
         print(f"[PROC ERROR {proc_name}] {err}")
         return []
+
 
 @app.route('/user/<int:user_id>')
 def user_history(user_id):
@@ -287,13 +292,17 @@ def dashboard():
         liked_content=liked_content
     )
 
-@app.route("/watch/<int:media_id>")
+@app.route('/watch/<int:media_id>')
 @login_required
 def watch_content(media_id):
     user_id = session["user_id"]
-    call_procedure("sp_watch_now", (user_id, media_id, 300))  # simulate 5 minutes watched
-    flash("Watch recorded!", "success")
-    return redirect(url_for("content_details", media_id=media_id))
+
+    # add 100 seconds each click
+    call_procedure("sp_watch_now", (user_id, media_id, 100))
+
+    flash("Watch recorded! +100 seconds added.", "success")
+    return redirect(url_for('content_details', media_id=media_id))
+
 
 @app.route('/like/<int:media_id>', methods=['POST', 'GET'])
 @login_required
