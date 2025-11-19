@@ -40,7 +40,7 @@ CREATE TABLE `content` (
 -- user
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
-  `User_ID` int NOT NULL,
+  `User_ID` int NOT NULL AUTO_INCREMENT,
   `Username` varchar(255) NOT NULL,
   `Password` varchar(255) NOT NULL,
   `Name` varchar(255) NOT NULL,
@@ -302,8 +302,18 @@ BEGIN
 END $$
 
 -- increment num_of_streams after insert into curr_watch
-CREATE TRIGGER `trg_increment_streams`
+CREATE TRIGGER `trg_increment_streams_on_insert`
 AFTER INSERT ON `curr_watch`
+FOR EACH ROW
+BEGIN
+    UPDATE content
+    SET Num_of_streams = Num_of_streams + 1
+    WHERE Media_ID = NEW.Media_ID;
+END $$
+
+
+CREATE TRIGGER `trg_increment_streams_on_update`
+AFTER UPDATE ON `curr_watch`
 FOR EACH ROW
 BEGIN
     UPDATE content
