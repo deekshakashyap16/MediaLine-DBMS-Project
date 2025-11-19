@@ -152,6 +152,7 @@ def call_procedure(proc_name, args=()):
 
         # Execute the procedure
         cur.callproc(proc_name, args)
+        conn.commit()
 
         # Necessary for INSERT/UPDATE in stored procedures
         conn.commit()
