@@ -20,8 +20,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_strong_secret_key'
 
 db_config = {
-    'user': 'root',
-    'password': 'root',
+    'user': 'appuser',
+    'password': 'password123',
     'host': '127.0.0.1',
     'database': 'media_line'
 }
@@ -253,7 +253,7 @@ def login():
             session["user_id"] = user["User_ID"]
             session["user_name"] = user["Name"]
             flash(f"Welcome, {user['Name']}!", "success")
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("home"))
         else:
             flash("Invalid email or password.", "danger")
 
@@ -283,39 +283,6 @@ def logout():
     return redirect(url_for("login"))
 
 
-@app.route("/dashboard")
-@login_required
-def dashboard():
-    """Personalized user dashboard."""
-    if "user_id" not in session:
-        flash("Please log in to view your dashboard.", "warning")
-        return redirect(url_for("login"))
-
-    user_id = session["user_id"]
-    user = query_db("SELECT * FROM user WHERE User_ID = %s", (user_id,), one=True)
-    history = call_procedure("sp_watch_history", (user_id,))
-    total_time = query_db("SELECT fn_total_watch_time(%s) AS total_time", (user_id,), one=True)
-    liked_content = query_db("""
-    SELECT c.Name, c.Type
-    FROM liked l
-    JOIN content c ON l.Media_ID = c.Media_ID
-    WHERE l.User_ID = %s
-""", (user_id,))
-    downloads = query_db("""
-        SELECT d.User_ID, d.Media_ID, d.Download_Date, c.Name, c.Type
-        FROM download d
-        JOIN content c ON d.Media_ID = c.Media_ID
-        WHERE d.User_ID = %s
-    """, (user_id,))
-
-    return render_template(
-        "dashboard.html",
-        user=user,
-        history=history,
-        total_time=total_time["total_time"] if total_time else 0,
-        liked_content=liked_content,
-        downloads=downloads
-    )
 
 @app.route('/watch/<int:media_id>')
 @login_required
@@ -455,23 +422,6 @@ def user_stats():
     """Shows user watch summary statistics using vw_user_watch_summary view."""
     stats = query_db("SELECT * FROM vw_user_watch_summary ORDER BY Total_Duration DESC")
     return render_template('user_stats.html', stats=stats)
-
-
-@app.route('/team/<int:media_id>')
-@login_required
-def cast_crew(media_id):
-    """Shows cast and crew using vw_movie_cast view."""
-    content = query_db("SELECT * FROM content WHERE Media_ID = %s", (media_id,), one=True)
-    if not content:
-        flash("Content not found.", "danger")
-        return redirect(url_for('home'))
-    
-    cast = query_db("""
-        SELECT Member_name, Role FROM team
-        WHERE Media_ID = %s
-    """, (media_id,))
-    
-    return render_template('cast_crew.html', content=content, cast=cast)
 
 
 if __name__ == '__main__':

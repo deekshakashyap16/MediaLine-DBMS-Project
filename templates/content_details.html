@@ -68,8 +68,6 @@
     <a href="{{ url_for('like_content', media_id=content.Media_ID) }}" 
        class="block w-full text-center py-3 mt-2 bg-gray-700 text-white rounded font-bold hover:bg-gray-600">Like ❤️</a>
 
-    <a href="{{ url_for('cast_crew', media_id=content.Media_ID) }}" 
-       class="block w-full text-center py-3 mt-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">Cast & Crew</a>
 
     {% if content.Type == 'Series' %}
     <a href="{{ url_for('view_episodes', media_id=content.Media_ID) }}" 
