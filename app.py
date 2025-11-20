@@ -5,6 +5,7 @@ from functools import wraps
 from flask import session, flash, redirect, url_for
 from datetime import date
 from werkzeug.security import generate_password_hash, check_password_hash
+import random
 
 def login_required(f):
     @wraps(f)
@@ -19,8 +20,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_strong_secret_key'
 
 db_config = {
-    'user': 'appuser',
-    'password': 'password123',
+    'user': 'root',
+    'password': 'root',
     'host': '127.0.0.1',
     'database': 'media_line'
 }
@@ -195,15 +196,20 @@ from flask import request, flash, redirect, url_for, render_template
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]  # ✅ no hashing — store plain text
-        name = request.form["name"]
-        dob = "2000-01-01"  # optional: add a real input later
-        address = "N/A"
-        email = request.form["email"]
-        card = "N/A"
-        phone = "N/A"
+        username = request.form.get("username")
+        password = request.form.get("password")
+        name = request.form.get("name")
+        dob = request.form.get("dob")
+        address = request.form.get("address")
+        email = request.form.get("email")
+        card = request.form.get("card")
+        phone = request.form.get("phone")
         start_date = date.today()
+
+        # Validation
+        if not all([username, password, name, dob, address, email, card, phone]):
+            flash("All fields are required.", "danger")
+            return render_template("signup.html")
 
         try:
             conn = get_db()
@@ -220,6 +226,12 @@ def signup():
             flash("Signup successful! Please log in.", "success")
             return redirect(url_for("login"))
 
+        except mysql.connector.Error as err:
+            print(f"[Signup Error] {err}")
+            if "Duplicate entry" in str(err):
+                flash("Email or username already exists. Try another.", "danger")
+            else:
+                flash("Signup failed. Try again.", "danger")
         except Exception as e:
             print(f"[Signup Error] {e}")
             flash("Signup failed. Try again.", "danger")
@@ -254,7 +266,13 @@ def profile():
     history = call_procedure("sp_watch_history", (user_id,))
     total_time = query_db("SELECT fn_total_watch_time(%s) AS total_time", (user_id,), one=True)
     likes = query_db("SELECT * FROM vw_user_likes WHERE User_ID = %s", (user_id,))
-    return render_template("profile.html", user=user, history=history, total_time=total_time["total_time"], likes=likes)
+    downloads = query_db("""
+        SELECT d.User_ID, d.Media_ID, d.Download_Date, c.Name, c.Type
+        FROM download d
+        JOIN content c ON d.Media_ID = c.Media_ID
+        WHERE d.User_ID = %s
+    """, (user_id,))
+    return render_template("profile.html", user=user, history=history, total_time=total_time["total_time"], likes=likes, downloads=downloads)
 
 
 @app.route("/logout")
@@ -283,14 +301,20 @@ def dashboard():
     JOIN content c ON l.Media_ID = c.Media_ID
     WHERE l.User_ID = %s
 """, (user_id,))
-
+    downloads = query_db("""
+        SELECT d.User_ID, d.Media_ID, d.Download_Date, c.Name, c.Type
+        FROM download d
+        JOIN content c ON d.Media_ID = c.Media_ID
+        WHERE d.User_ID = %s
+    """, (user_id,))
 
     return render_template(
         "dashboard.html",
         user=user,
         history=history,
         total_time=total_time["total_time"] if total_time else 0,
-        liked_content=liked_content
+        liked_content=liked_content,
+        downloads=downloads
     )
 
 @app.route('/watch/<int:media_id>')
@@ -298,10 +322,11 @@ def dashboard():
 def watch_content(media_id):
     user_id = session["user_id"]
 
-    # add 100 seconds each click
-    call_procedure("sp_watch_now", (user_id, media_id, 100))
+    # Randomly increment between 50-120 seconds to trigger clipping if needed
+    watch_duration = random.randint(50, 120)
+    call_procedure("sp_watch_now", (user_id, media_id, watch_duration))
 
-    flash("Watch recorded! +100 seconds added.", "success")
+    flash(f"Watch recorded! +{watch_duration} seconds added.", "success")
     return redirect(url_for('content_details', media_id=media_id))
 
 
@@ -327,6 +352,126 @@ def like_content(media_id):
         flash("You have already liked this content.", "info")
 
     return redirect(url_for('content_details', media_id=media_id))
+
+
+@app.route('/download/<int:media_id>')
+@login_required
+def download_content(media_id):
+    """Downloads content using the download table - triggers default date."""
+    user_id = session['user_id']
+    content = query_db("SELECT * FROM content WHERE Media_ID = %s", (media_id,), one=True)
+    
+    if not content:
+        flash("Content not found.", "danger")
+        return redirect(url_for('home'))
+    
+    # Check if already downloaded
+    existing = query_db("SELECT * FROM download WHERE User_ID = %s AND Media_ID = %s", (user_id, media_id), one=True)
+    if existing:
+        flash(f"'{content['Name']}' is already in your downloads.", "info")
+        return redirect(url_for('content_details', media_id=media_id))
+    
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO download (User_ID, Media_ID, Download_Date) VALUES (%s, %s, CURDATE())",
+            (user_id, media_id)
+        )
+        conn.commit()
+        cursor.close()
+        flash(f"'{content['Name']}' downloaded successfully!", "success")
+    except mysql.connector.Error as err:
+        flash("Error downloading content.", "danger")
+    
+    return redirect(url_for('content_details', media_id=media_id))
+
+
+@app.route('/delete-download/<int:media_id>', methods=['POST'])
+@login_required
+def delete_download(media_id):
+    """Deletes a downloaded content from the user's downloads."""
+    user_id = session['user_id']
+    
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM download WHERE User_ID = %s AND Media_ID = %s",
+            (user_id, media_id)
+        )
+        conn.commit()
+        cursor.close()
+        flash("Download removed from your library.", "success")
+    except mysql.connector.Error as err:
+        flash("Error deleting download.", "danger")
+    
+    return redirect(url_for('profile'))
+
+
+@app.route('/trailers')
+@login_required
+def trailers():
+    """Displays all available trailers using the trailer table."""
+    trailers = query_db("""
+        SELECT t.Media_ID, c.Name, t.Trailer_name, t.Trailer_duration
+        FROM trailer t
+        JOIN content c ON t.Media_ID = c.Media_ID
+    """)
+    return render_template('trailers.html', trailers=trailers)
+
+
+@app.route('/episodes/<int:media_id>')
+@login_required
+def view_episodes(media_id):
+    """Views episodes of a series using the episode table."""
+    series = query_db("SELECT * FROM series WHERE Media_ID = %s", (media_id,), one=True)
+    if not series:
+        flash("Series not found.", "danger")
+        return redirect(url_for('series'))
+    
+    content = query_db("SELECT * FROM content WHERE Media_ID = %s", (media_id,), one=True)
+    episodes = query_db("""
+        SELECT Episode_ID, Season_number, Episode_number, Episode_name, Duration, Air_date
+        FROM episode
+        WHERE Media_ID = %s
+        ORDER BY Season_number, Episode_number
+    """, (media_id,))
+    
+    return render_template('episodes.html', content=content, episodes=episodes, series=series)
+
+
+@app.route('/top-movies')
+@login_required
+def top_movies():
+    """Displays top movies using sp_top_movies stored procedure."""
+    top_movies = call_procedure("sp_top_movies", (10,))
+    return render_template('top_movies.html', movies=top_movies)
+
+
+@app.route('/stats')
+@login_required
+def user_stats():
+    """Shows user watch summary statistics using vw_user_watch_summary view."""
+    stats = query_db("SELECT * FROM vw_user_watch_summary ORDER BY Total_Duration DESC")
+    return render_template('user_stats.html', stats=stats)
+
+
+@app.route('/team/<int:media_id>')
+@login_required
+def cast_crew(media_id):
+    """Shows cast and crew using vw_movie_cast view."""
+    content = query_db("SELECT * FROM content WHERE Media_ID = %s", (media_id,), one=True)
+    if not content:
+        flash("Content not found.", "danger")
+        return redirect(url_for('home'))
+    
+    cast = query_db("""
+        SELECT Member_name, Role FROM team
+        WHERE Media_ID = %s
+    """, (media_id,))
+    
+    return render_template('cast_crew.html', content=content, cast=cast)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Cast & Crew - MediaLine{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">{{ content['Name'] }} - Cast & Crew</h2>
+    
+    {% if cast %}
+        <div class="row">
+            {% for member in cast %}
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ member['Member_name'] }}</h5>
+                        <p class="card-text">
+                            <strong>Role:</strong> {{ member['Role'] if member['Role'] else 'N/A' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="alert alert-info">No cast & crew information available.</p>
+    {% endif %}
+    
+    <hr>
+    <a href="{{ url_for('content_details', media_id=content['Media_ID']) }}" class="btn btn-secondary">Back to Content</a>
+</div>
+{% endblock %}

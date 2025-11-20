@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Top Movies - MediaLine{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Top Movies by Streams</h2>
+    
+    {% if movies %}
+        <div class="row">
+            {% for movie in movies %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ movie.get('Name', 'N/A') }}</h5>
+                        <p class="card-text">
+                            <strong>Streams:</strong> {{ movie.get('Num_of_streams', 0) }}<br>
+                        </p>
+                        <a href="{{ url_for('content_details', media_id=movie.get('Media_ID', 0)) }}" class="btn btn-primary btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="alert alert-info">No movies available.</p>
+    {% endif %}
+</div>
+{% endblock %}

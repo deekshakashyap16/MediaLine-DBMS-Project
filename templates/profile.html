@@ -2,7 +2,7 @@
 {% block content %}
 <h1 class="text-3xl font-bold text-red-600 mb-4">{{ user.Name }}'s Profile</h1>
 <p>Email: {{ user.Email }}</p>
-<p>Total Watch Time: {{ total_time }} seconds</p>
+<p>Total Watch Time: {{ total_time }} seconds ({{ "%.2f" | format(total_time / 3600) }} hours)</p>
 
 <h2 class="text-2xl font-bold mt-6 mb-3">Watch History</h2>
 {% if history %}
@@ -29,5 +29,28 @@
 </ul>
 {% else %}
 <p>No liked content yet.</p>
+{% endif %}
+
+<h2 class="text-2xl font-bold mt-6 mb-3">Downloaded Content</h2>
+{% if downloads %}
+<table border="1" class="w-full text-left">
+  <tr><th>Title</th><th>Type</th><th>Downloaded</th><th>Action</th></tr>
+  {% for d in downloads %}
+  <tr>
+    <td>
+      <a href="{{ url_for('content_details', media_id=d.Media_ID) }}" class="text-blue-400 hover:underline">{{ d.Name }}</a>
+    </td>
+    <td>{{ d.Type }}</td>
+    <td>{{ d.Download_Date }}</td>
+    <td>
+      <form method="POST" action="{{ url_for('delete_download', media_id=d.Media_ID) }}" style="display:inline;">
+        <button type="submit" class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700" onclick="return confirm('Remove this download?')">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No downloads yet.</p>
 {% endif %}
 {% endblock %}

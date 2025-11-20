@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Episodes - MediaLine{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">{{ content['Name'] }} - Episodes</h2>
+    <p class="text-muted">
+        <strong>Seasons:</strong> {{ series['num_of_seasons'] }} | 
+        <strong>Total Episodes:</strong> {{ series['num_of_episodes'] }}
+    </p>
+    
+    {% if episodes %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Season</th>
+                        <th>Episode</th>
+                        <th>Title</th>
+                        <th>Duration (sec)</th>
+                        <th>Air Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for episode in episodes %}
+                    <tr>
+                        <td>Season {{ episode['Season_number'] }}</td>
+                        <td>Ep. {{ episode['Episode_number'] }}</td>
+                        <td>{{ episode['Episode_name'] }}</td>
+                        <td>{{ episode['Duration'] }}</td>
+                        <td>{{ episode['Air_date'] }}</td>
+                        <td>
+                            <a href="{{ url_for('watch_content', media_id=content['Media_ID']) }}" class="btn btn-sm btn-success">Watch</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="alert alert-info">No episodes available.</p>
+    {% endif %}
+</div>
+{% endblock %}

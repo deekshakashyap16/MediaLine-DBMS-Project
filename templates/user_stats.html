@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}User Statistics - MediaLine{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">User Watch Summary Statistics</h2>
+    
+    {% if stats %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>User ID</th>
+                        <th>Name</th>
+                        <th>Total Items Watched</th>
+                        <th>Total Watch Time (seconds)</th>
+                        <th>Total Watch Time (hours)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in stats %}
+                    <tr>
+                        <td>{{ stat['User_ID'] }}</td>
+                        <td>{{ stat['Name'] }}</td>
+                        <td>{{ stat['Total_Watched'] }}</td>
+                        <td>{{ stat['Total_Duration'] }}</td>
+                        <td>{{ "%.2f" | format(stat['Total_Duration'] / 3600) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="alert alert-info">No statistics available.</p>
+    {% endif %}
+</div>
+{% endblock %}

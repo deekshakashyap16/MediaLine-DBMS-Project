@@ -14,7 +14,6 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
 CREATE DATABASE IF NOT EXISTS `media_line` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE `media_line`;
 
@@ -369,7 +368,7 @@ END $$
 
 CREATE PROCEDURE `sp_top_movies`(IN n INT)
 BEGIN
-    SELECT Name, Num_of_streams
+    SELECT Media_ID, Name, Num_of_streams
     FROM content
     WHERE Type='Movie'
     ORDER BY Num_of_streams DESC

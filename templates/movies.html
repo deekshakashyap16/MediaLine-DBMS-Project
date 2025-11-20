@@ -3,9 +3,10 @@
 <h1 class="text-3xl font-bold mb-6">All Movies</h1>
 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
   {% for m in movies %}
-  <div class="bg-gray-800 p-4 rounded-lg hover:bg-gray-700">
+  <div class="bg-gray-800 p-4 rounded-lg hover:bg-gray-700 cursor-pointer" onclick="location.href='{{ url_for('content_details', media_id=m.Media_ID) }}'">
     <h3 class="font-bold">{{ m.Name }}</h3>
     <p class="text-sm text-gray-400">{{ m.Descr[:100] }}...</p>
+    <p class="text-xs text-gray-500 mt-2">Rating: {{ m.Ratings }} | {{ m.Age_rating }}</p>
   </div>
   {% endfor %}
 </div>
