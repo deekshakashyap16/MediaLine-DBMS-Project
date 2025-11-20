@@ -20,8 +20,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_strong_secret_key'
 
 db_config = {
-    'user': 'appuser',
-    'password': 'password123',
+    'user': 'root',
+    'password': 'root',
     'host': '127.0.0.1',
     'database': 'media_line'
 }
@@ -422,6 +422,75 @@ def user_stats():
     """Shows user watch summary statistics using vw_user_watch_summary view."""
     stats = query_db("SELECT * FROM vw_user_watch_summary ORDER BY Total_Duration DESC")
     return render_template('user_stats.html', stats=stats)
+
+
+@app.route('/watched-status')
+@login_required
+def watched_status():
+    """Shows which content users have watched using fn_has_watched function."""
+    user_id = session["user_id"]
+    all_content = query_db("SELECT Media_ID, Name, Type FROM content")
+    
+    watched_list = []
+    for content in all_content:
+        has_watched = query_db(
+            "SELECT fn_has_watched(%s, %s) AS watched", 
+            (user_id, content['Media_ID']), 
+            one=True
+        )
+        if has_watched:
+            watched_list.append({
+                'Media_ID': content['Media_ID'],
+                'Name': content['Name'],
+                'Type': content['Type'],
+                'watched': has_watched.get('watched', 0)
+            })
+    
+    return render_template('watched_status.html', watched=watched_list)
+
+
+@app.route('/viewers/<int:media_id>')
+@login_required
+def total_viewers(media_id):
+    """Shows total number of viewers for a content using fn_total_viewers function."""
+    content = query_db("SELECT * FROM content WHERE Media_ID = %s", (media_id,), one=True)
+    
+    if not content:
+        flash("Content not found.", "danger")
+        return redirect(url_for('home'))
+    
+    viewer_count = query_db(
+        "SELECT fn_total_viewers(%s) AS viewer_count", 
+        (media_id,), 
+        one=True
+    )
+    viewer_count_val = viewer_count.get('viewer_count', 0) if viewer_count else 0
+    
+    return render_template('viewers.html', content=content, viewer_count=viewer_count_val)
+
+
+@app.route('/episode-count/<int:media_id>')
+@login_required
+def episode_count_page(media_id):
+    """Shows episode count for a series using fn_episode_count function."""
+    content = query_db("SELECT * FROM content WHERE Media_ID = %s", (media_id,), one=True)
+    
+    if not content:
+        flash("Content not found.", "danger")
+        return redirect(url_for('home'))
+    
+    if content['Type'] != 'Series':
+        flash("Episode count is only available for Series.", "info")
+        return redirect(url_for('content_details', media_id=media_id))
+    
+    ep_count = query_db(
+        "SELECT fn_episode_count(%s) AS episode_count", 
+        (media_id,), 
+        one=True
+    )
+    ep_count_val = ep_count.get('episode_count', 0) if ep_count else 0
+    
+    return render_template('episode_count.html', content=content, episode_count=ep_count_val)
 
 
 if __name__ == '__main__':

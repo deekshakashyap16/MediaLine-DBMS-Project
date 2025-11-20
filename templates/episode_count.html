@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Episode Count - MediaLine{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">{{ content.Name }} - Episode Count</h2>
+    
+    <div class="card shadow-sm">
+        <div class="card-body text-center">
+            <h3 class="card-title text-muted">Total Episodes</h3>
+            <h1 class="display-4 text-red-600 font-bold">{{ episode_count }}</h1>
+            <p class="card-text text-muted">Using function: <code>fn_episode_count()</code></p>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <p class="text-gray-400">
+            <strong>Series Name:</strong> {{ content.Name }}<br>
+            <strong>Type:</strong> {{ content.Type }}<br>
+            <strong>Language:</strong> {{ content.Language }}<br>
+            <strong>Rating:</strong> {{ content.Ratings }} / 10
+        </p>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('view_episodes', media_id=content.Media_ID) }}" class="btn btn-primary">View All Episodes</a>
+        <a href="{{ url_for('content_details', media_id=content.Media_ID) }}" class="btn btn-secondary">Back to Content</a>
+    </div>
+</div>
+{% endblock %}

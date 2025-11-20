@@ -401,11 +401,6 @@ FROM `user` u
 LEFT JOIN curr_watch cw ON u.User_ID = cw.User_ID
 GROUP BY u.User_ID;
 
-CREATE OR REPLACE VIEW `vw_movie_cast` AS
-SELECT m.Media_ID, m.Media_ID AS MediaID_check, t.Member_name AS Crew_Member, t.Role
-FROM movie m
-JOIN team t ON m.Media_ID = t.Media_ID;
-
 CREATE OR REPLACE VIEW `vw_user_likes` AS
 SELECT u.User_ID, u.Name, c.Name AS Content_Name, c.Type
 FROM liked l

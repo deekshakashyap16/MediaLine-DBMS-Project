@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Viewers - MediaLine{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">{{ content.Name }} - Viewer Statistics</h2>
+    
+    <div class="card shadow-sm">
+        <div class="card-body text-center">
+            <h3 class="card-title text-muted">Total Unique Viewers</h3>
+            <h1 class="display-4 text-red-600 font-bold">{{ viewer_count }}</h1>
+            <p class="card-text text-muted">Using function: <code>fn_total_viewers()</code></p>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <p class="text-gray-400">
+            <strong>Content Type:</strong> {{ content.Type }}<br>
+            <strong>Release Date:</strong> {{ content.Release_date }}<br>
+            <strong>Rating:</strong> {{ content.Ratings }} / 10 ({{ content.Age_rating }})
+        </p>
+    </div>
+    
+    <hr>
+    <a href="{{ url_for('content_details', media_id=content.Media_ID) }}" class="btn btn-secondary">Back to Content</a>
+</div>
+{% endblock %}

@@ -69,9 +69,15 @@
        class="block w-full text-center py-3 mt-2 bg-gray-700 text-white rounded font-bold hover:bg-gray-600">Like ❤️</a>
 
 
+    <a href="{{ url_for('total_viewers', media_id=content.Media_ID) }}" 
+       class="block w-full text-center py-3 mt-2 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700">👥 View Count</a>
+
     {% if content.Type == 'Series' %}
     <a href="{{ url_for('view_episodes', media_id=content.Media_ID) }}" 
        class="block w-full text-center py-3 mt-2 bg-purple-600 text-white rounded font-bold hover:bg-purple-700">Episodes</a>
+
+    <a href="{{ url_for('episode_count_page', media_id=content.Media_ID) }}" 
+       class="block w-full text-center py-3 mt-2 bg-pink-600 text-white rounded font-bold hover:bg-pink-700">📊 Episode Count</a>
     {% endif %}
 
   </div>
