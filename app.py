@@ -91,7 +91,7 @@ def users():
 
 @app.route("/database_objects")
 def database_objects():
-    db = get_db()  # ✅ use your existing get_db() helper
+    db = get_db()  # use your existing get_db() helper
     cursor = db.cursor(dictionary=True)
 
     # Fetch all database objects
@@ -215,7 +215,7 @@ def signup():
             conn = get_db()
             cursor = conn.cursor()
 
-            # ✅ Match exact parameter order of sp_add_user
+            # Match exact parameter order of sp_add_user
             cursor.callproc("sp_add_user", (
                 username, password, name, dob, address, email, card, phone, start_date
             ))
